@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark" style="--fs:16px">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>HANDSPEAK</title>
+  <meta name="theme-color" content="#0f1115"/>
+
+  <style>
+    :root{--bg:#0f1115;--panel:#151923;--panel-2:#0a121c;--ink:#e6e9ef;--muted:#9aa5b1;--acc:#36d399;--ring:#2c3342;--danger:#ff6b6b}
+    [data-theme=light]{--bg:#f6f8fb;--panel:#fff;--panel-2:#eef3fb;--ink:#0b1220;--muted:#576072;--acc:#0fb981;--ring:#d9e1ee;--danger:#e35050}
+    [data-theme=hc]{--bg:#000;--panel:#000;--panel-2:#000;--ink:#fff;--muted:#ddd;--acc:#ff0;--ring:#fff}
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;font-size:var(--fs)}
+    a{color:var(--acc);text-decoration:none}
+    main{max-width:1200px;margin:0 auto;padding:18px;display:flex;flex-direction:column;gap:18px}
+    header{display:flex;flex-direction:column;align-items:center;gap:8px}
+    .brand{font-size:48px;font-style:italic;font-weight:900;margin:4px 0;text-align:center;font-family:Georgia,'Times New Roman',serif}
+    nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    nav button{background:#1d2330;border:1px solid var(--ring);color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    [data-theme=light] nav button{background:#eef3fb}
+    nav button.active{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+    .panel{background:var(--panel);border:1px solid var(--ring);border-radius:12px;padding:16px}
+    h2{margin:0 0 8px}
+    .hint{color:var(--muted);font-size:.9em}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .row.stretch>*{flex:1 1 auto}
+    .ctrl,select,input,button{background:#1d2330;border:1px solid var(--ring);color:var(--ink);padding:8px 12px;border-radius:8px}
+    [data-theme=light] select,[data-theme=light] input,[data-theme=light] button{background:#eef3fb}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width:980px){.two{grid-template-columns:1fr}}
+    .switch{position:relative;display:inline-block;width:44px;height:24px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#394050;transition:.2s;border-radius:999px}
+    .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%}
+    .switch input:checked + .slider{background:var(--acc)} .switch input:checked + .slider:before{transform:translateX(20px)}
+    #stage{position:relative;width:min(96vw,960px);aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px var(--ring) inset;margin:10px auto}
+    #stage.mirror video,#stage.mirror canvas,#stage.mirror .ghost{transform:scaleX(-1)}
+    #stage video,#stage canvas,.ghost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    #banner{position:absolute;left:12px;top:12px;padding:8px 12px;background:rgba(0,0,0,.6);border-radius:10px;color:#fff;font-weight:700}
+    #faceTag{position:absolute;right:12px;top:12px;padding:8px 12px;background:rgba(0,0,0,.6);border-radius:10px;color:#fff;font-weight:700}
+    #caption{margin-top:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--ring);background:var(--panel-2);font-weight:700;min-height:44px}
+    .primary{background:var(--acc);color:#0b1712;border-color:#2b8d6b}
+    .danger{background:var(--danger);color:#200;border-color:#c94141}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:10px}
+    .cell{border:1px solid var(--ring);border-radius:10px;padding:16px;text-align:center;background:#101521;font-size:20px;font-weight:800;cursor:pointer;user-select:none}
+    [data-theme=light] .cell{background:#fff}
+    .log{border:1px solid var(--ring);background:#0a121c;color:var(--ink);border-radius:10px;padding:10px;height:180px;overflow:auto}
+    [data-theme=light] .log{background:#eef3fb}
+    footer{margin:10px auto 24px;text-align:center;color:var(--muted)}
+    .range-row{display:flex;align-items:center;gap:4px}
+    .range-row .range{flex:1 1 auto;width:100%}
+    .range-row .val{min-width:44px;text-align:right}
+    input[type=range].fillrange{-webkit-appearance:none;appearance:none;background:transparent;height:18px;cursor:pointer;border:none;padding:0;margin:0}
+    input[type=range].fillrange::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(var(--acc),var(--acc)) 0/ var(--p,0%) 100% no-repeat,#2b3344;border:1px solid var(--ring)}
+    [data-theme=light] input[type=range].fillrange::-webkit-slider-runnable-track{background:linear-gradient(var(--acc),var(--acc)) 0/ var(--p,0%) 100% no-repeat,#dfe7f5}
+    input[type=range].fillrange::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.2);margin-top:-5px;box-shadow:0 0 0 2px rgba(0,0,0,.06)}
+    input[type=range].fillrange::-moz-range-track{height:8px;border-radius:999px;background:#2b3344;border:1px solid var(--ring)}
+    [data-theme=light] input[type=range].fillrange::-moz-range-track{background:#dfe7f5}
+    input[type=range].fillrange::-moz-range-progress{height:8px;border-radius:999px;background:var(--acc);border:1px solid var(--ring)}
+    input[type=range].fillrange::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.2)}
+
+    #cookieBox{position:fixed;left:16px;right:16px;bottom:16px;background:var(--panel);border:1px solid var(--ring);border-radius:12px;padding:12px;display:none;gap:8px;align-items:center;z-index:99}
+    #cookieBox .actions{margin-left:auto;display:flex;gap:8px}
+
+    #ghost{pointer-events:none;opacity:.7;mix-blend-mode:screen}
+    #ghost.hint{opacity:.95}
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.min.js"></script>
+</head>
+<body>
+<div id="cookieBox" role="dialog" aria-live="polite">
+  <div id="cookieMsg">Cho phép lưu Streak (ngày luyện tập) vào trình duyệt?</div>
+  <div class="actions">
+    <button id="cookieYes" class="primary">Cho phép</button>
+    <button id="cookieNo">Không</button>
+  </div>
+</div>
+
+<main>
+  <header>
+    <h1 class="brand">Handspeak</h1>
+
+    <div class="row stretch" id="topbar">
+      <label class="ctrl" style="min-width:240px"><span id="t_lang">Ngôn ngữ</span> /
+        <select id="lang"><option value="vi" selected>Tiếng Việt</option><option value="en">English</option></select>
+      </label>
+
+      <label class="ctrl" style="min-width:220px"><span id="t_theme">Chủ đề</span>:
+        <select id="theme">
+          <option value="normal" selected>Bình thường</option>
+          <option value="light">Sáng</option>
+          <option value="dark">Tối</option>
+          <option value="hc">Tương phản cao</option>
+        </select>
+      </label>
+
+      <label class="ctrl" style="flex:2 1 380px">
+        <div class="range-row">
+          <span id="t_font">Cỡ chữ</span>:
+          <input id="fontStep" class="range fillrange" type="range" min="12" max="28" value="16"/>
+          <span id="fontVal" class="val">16px</span>
+        </div>
+      </label>
+
+      <div class="ctrl" id="streakBox">
+        <span class="hint" id="streakHint">Chưa luyện tập</span>
+        <span class="hint"> | </span>
+        <b id="streakCount">Streak: 0</b>
+        <button id="askCookie" class="primary" style="margin-left:8px">Cho phép lưu</button>
+      </div>
+    </div>
+
+    <nav>
+      <button data-tab="intro" class="active" id="tabBtnIntro">Giới thiệu</button>
+      <button data-tab="learn" id="tabBtnLearn">Học & Tra cứu</button>
+      <button data-tab="practice" id="tabBtnPractice">Thực hành</button>
+      <button data-tab="impact" id="tabBtnImpact">Ý nghĩa</button>
+      <button data-tab="contact" id="tabBtnContact">Liên hệ</button>
+    </nav>
+  </header>
+
+  <section class="panel" id="tab-intro">
+    <div class="two">
+      <div>
+        <h2 id="i1">1) Giới thiệu</h2>
+        <p id="i2"><b>Handspeak</b> là một dự án cộng đồng hỗ trợ người khiếm thính giao tiếp và giúp mọi người học ngôn ngữ ký hiệu.</p>
+        <ul id="i3">
+          <li>Nhận dạng cử chỉ theo thời gian thực.</li>
+          <li>Các cử chỉ phổ biến + bảng chữ cái & số.</li>
+          <li>Hỗ trợ Tiếng Việt & Tiếng Anh. Xử lý trên thiết bị.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="text-align:center" id="i4">Bảng ngôn ngữ ký hiệu</h3>
+        <img id="chartImg" style="width:100%;height:auto;border-radius:10px;border:1px solid var(--ring)" alt="Bảng ngôn ngữ ký hiệu" src="https://scontent.fvca1-1.fna.fbcdn.net/v/t39.30808-6/574114834_1902049910353589_3865006877574798160_n.jpg?stp=dst-jpg_s640x640_tt6&_nc_cat=106&ccb=1-7&_nc_sid=127cfc&_nc_ohc=5PagjPQDSwAQ7kNvwF3eQvn&_nc_oc=AdkMgwQiLjxAMWV_US0f9FEfC5jv-LzTRk2gnB9nWOAm_eC-PZ8eF7ZWUquI1HYgi9U&_nc_zt=23&_nc_ht=scontent.fvca1-1.fna&_nc_gid=bFNV3digav7IK78UHsnOGw&oh=00_Afg_pnodMCAvoMW0d81OVbQJp5meyut89Fkpg0DnUxv0Yg&oe=69183862"/>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="tab-learn" hidden>
+    <h2 id="l1">2) Học & Tra cứu</h2>
+    <p class="hint" id="l2">Bấm vào ô để nghe phát âm ký tự.</p>
+    <div class="grid" id="alphaGrid"></div>
+  </section>
+
+  <section class="panel" id="tab-practice" hidden>
+    <h2 id="p1">3) Thực hành với camera</h2>
+
+    <div id="stage">
+      <video id="video" class="input_video" autoplay playsinline muted></video>
+      <canvas id="canvas" class="output_canvas"></canvas>
+      <canvas id="ghost" class="ghost"></canvas>
+      <div id="banner">Chưa bật camera</div>
+      <div id="faceTag" aria-live="polite">🙂</div>
+    </div>
+    <div id="caption" aria-live="polite">…</div>
+
+    <div class="row" id="controls">
+      <button id="startCam" class="primary">Bật camera</button>
+      <button id="stopCam">Tắt camera</button>
+      <button id="flipCam">Lật gương</button>
+
+      <label class="ctrl">
+        <span id="p2_label">Chế độ</span>:
+        <select id="mode">
+          <option value="auto">Tự động</option>
+          <option value="actions" selected>Chỉ hành động</option>
+          <option value="alphabet">Chỉ alphabet</option>
+        </select>
+      </label>
+
+      <label class="switch" title="Tiết kiệm pin (hạ phân giải, giảm tải)">
+        <input type="checkbox" id="powerSave"/><span class="slider"></span>
+      </label><span id="p2_powersave">Tiết kiệm pin</span>
+
+      <button id="quickHelp">Hướng dẫn nhanh</button>
+
+      <label class="switch">
+        <input type="checkbox" id="toggle-audio" checked/><span class="slider"></span>
+      </label><span id="p2_audio">Bật âm thanh</span>
+
+      <button id="vol-dec">−</button>
+      <input type="range" id="vol" class="range fillrange" min="0" max="1" step="0.05" value="1">
+      <button id="vol-inc">+</button>
+      <span id="vol-val" class="val">100%</span>
+
+      <input id="tutorSeq" class="ctrl" style="min-width:320px" placeholder="Nhập chuỗi ký tự (ví dụ: HELLO)"/>
+      <button id="tutorStart">Bắt đầu hướng dẫn</button>
+      <label class="switch" title="Hiển thị hướng dẫn ảo">
+        <input type="checkbox" id="ghostToggle" checked/><span class="slider"></span>
+      </label><span id="p2_ghost">Hiện hướng dẫn ảo</span>
+
+      <label class="ctrl">
+        <span id="voiceLbl">Giọng đọc</span>:
+        <select id="voiceSelect"><option>Đang tải…</option></select>
+        <button id="refreshVoice">↻</button>
+      </label>
+
+      <button id="recStart">Ghi hình (không mic)</button>
+      <button id="recStop" class="danger">Dừng & Tải video</button>
+    </div>
+
+    <div class="panel" style="margin-top:12px">
+      <div class="row">
+        <label class="ctrl"><b>Alphabet:</b> <span id="alphaPred">—</span></label>
+      </div>
+      <div class="row">
+        <label class="ctrl">
+          <span id="p3_load">Nạp JSON alphabet</span>:
+          <input id="alphaFile" type="file" accept=".json,.js"/>
+        </label>
+        <button id="alphaLoad">Nạp tệp</button>
+        <button id="alphaClear">Xóa DB</button>
+        <span class="hint" id="alphaInfo">Chưa nạp DB</span>
+      </div>
+      <div class="row">
+        <input id="ttsText" class="ctrl" style="min-width:320px" value="Xin chào! Đây là kiểm tra tiếng nói.">
+        <button id="sayNow">Đọc thử</button>
+        <button id="stopSay">Dừng</button>
+      </div>
+    </div>
+
+    <div class="log" id="liveLog" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="tab-impact" hidden>
+    <h2 id="im1">4) Ý nghĩa & tác động</h2>
+    <ul id="im2">
+      <li>Thiết kế tiếp cận (tương phản cao, cỡ chữ, phụ đề).</li>
+      <li>Giảm rào cản ký hiệu → lời nói, học có hướng dẫn.</li>
+      <li>Xử lý trên thiết bị; không gửi máy chủ.</li>
+    </ul>
+  </section>
+
+  <section class="panel" id="tab-contact" hidden>
+    <h2 id="c1">5) Liên hệ</h2>
+    <div class="grid">
+      <div class="cell">
+        <h3 id="c2">📧 Gmail</h3>
+        <a id="c2a" href="mailto:thptmaithanhthe2025@gmail.com">thptmaithanhthe2025@gmail.com</a>
+      </div>
+      <div class="cell">
+        <h3 id="c3">📝 Góp ý</h3>
+        <a id="c3a" target="_blank" rel="noopener" href="https://forms.gle/2xaCbZrDmuqT2B587">Tại đây</a>
+      </div>
+      <div class="cell">
+        <h3 id="c4">📞 Điện thoại</h3>
+        <div><a href="tel:0943900802">0943900802</a> (Minh Sịn)</div>
+        <div><a href="tel:0353143116">0353143116</a> (Minh Huy)</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>© <span id="cp">Bản quyền thuộc về</span>: <b>MHS</b> ®</footer>
+
+<script>
+const I18N={
+  vi:{tabs:['Giới thiệu','Học & Tra cứu','Thực hành','Ý nghĩa','Liên hệ'],lang:'Ngôn ngữ',theme:'Chủ đề',font:'Cỡ chữ',
+      intro_h:'1) Giới thiệu',intro_p:'<b>Handspeak</b> là một dự án cộng đồng hỗ trợ người khiếm thính giao tiếp và giúp mọi người học ngôn ngữ ký hiệu.',intro_list:['Nhận dạng cử chỉ theo thời gian thực.','Các cử chỉ phổ biến + bảng chữ cái & số.','Hỗ trợ Tiếng Việt & Tiếng Anh. Xử lý trên thiết bị.'],board:'Bảng ngôn ngữ ký hiệu',
+      learn_h:'2) Học & Tra cứu',learn_hint:'Bấm vào ô để nghe phát âm ký tự.',
+      practice_h:'3) Thực hành với camera',mode:'Chế độ',powersave:'Tiết kiệm pin',audio:'Bật âm thanh',ghost:'Hiện hướng dẫn ảo',load_json:'Nạp JSON alphabet',
+      contact_h:'5) Liên hệ',email:'📧 Gmail',feedback:'📝 Góp ý',feedback_link:'Tại đây',phone:'📞 Điện thoại',
+      impact_h:'4) Ý nghĩa & tác động',impact_list:['Thiết kế tiếp cận (tương phản cao, cỡ chữ, phụ đề).','Giảm rào cản ký hiệu → lời nói, học có hướng dẫn.','Xử lý trên thiết bị; không gửi máy chủ.'],
+      copyright:'Bản quyền thuộc về',
+      quick:`• Bật camera trên HTTPS/localhost.\n• Giữ tay rõ trong khung hình; dùng “Lật gương” cho camera trước.`,
+      tutor_prompt:(ch)=>`Thực hiện ký hiệu: ${ch}`,
+      phrases:{WAVE:'Xin chào!',OPEN_PALM:'Chào bạn!',STOP:'Dừng lại!',THUMBS_UP:'Làm tốt lắm!',THUMBS_DOWN:'Không thích!',OK:'OK!',VICTORY:'Tuyệt vời!',FIST:'Xin lỗi!',POINT:'Ở kia!',THANKS:'Cảm ơn!'},
+      voice:'Giọng đọc'
+  },
+  en:{tabs:['Intro','Learn','Practice','Impact','Contact'],lang:'Language',theme:'Theme',font:'Font size',
+      intro_h:'1) Introduction',intro_p:'<b>Handspeak</b> helps Deaf/HoH users communicate and learn sign language.',intro_list:['Real‑time gesture recognition.','Popular gestures + letters & digits.','Bilingual (VI/EN). On‑device processing.'],board:'Sign language chart',
+      learn_h:'2) Learn & Reference',learn_hint:'Tap a tile to hear pronunciation.',
+      practice_h:'3) Practice with camera',mode:'Mode',powersave:'Power save',audio:'Enable audio',ghost:'Show ghost tutor',load_json:'Load alphabet JSON',
+      contact_h:'5) Contact',email:'📧 Email',feedback:'📝 Feedback',feedback_link:'Here',phone:'📞 Phone',
+      impact_h:'4) Impact',impact_list:['Accessible design (high contrast, font sizing, captions).','Bridges sign → speech with guided practice.','On‑device; no server upload.'],
+      copyright:'Copyright',
+      quick:`• Use camera over HTTPS/localhost.\n• Keep hands in frame; use “Mirror” for front camera.`,
+      tutor_prompt:(ch)=>`Show sign for: ${ch}`,
+      phrases:{WAVE:'Hello!',OPEN_PALM:'Hi there!',STOP:'Stop!',THUMBS_UP:'Great job!',THUMBS_DOWN:'Dislike!',OK:'OK!',VICTORY:'Awesome!',FIST:'Sorry!',POINT:'Over there!',THANKS:'Thank you!'},
+      voice:'Voice'
+  }
+};
+function applyI18N(lang){const t=I18N[lang];
+  document.getElementById('tabBtnIntro').textContent=t.tabs[0];
+  document.getElementById('tabBtnLearn').textContent=t.tabs[1];
+  document.getElementById('tabBtnPractice').textContent=t.tabs[2];
+  document.getElementById('tabBtnImpact').textContent=t.tabs[3];
+  document.getElementById('tabBtnContact').textContent=t.tabs[4];
+  document.getElementById('t_lang').textContent=t.lang;
+  document.getElementById('t_theme').textContent=t.theme;
+  document.getElementById('t_font').textContent=t.font;
+  document.getElementById('i1').textContent=t.intro_h;
+  document.getElementById('i2').innerHTML=t.intro_p;
+  document.getElementById('i3').innerHTML=t.intro_list.map(x=>`<li>${x}</li>`).join('');
+  document.getElementById('i4').textContent=t.board;
+  document.getElementById('l1').textContent=t.learn_h;
+  document.getElementById('l2').textContent=t.learn_hint;
+  document.getElementById('p1').textContent=t.practice_h;
+  document.getElementById('p2_label').textContent=t.mode;
+  document.getElementById('p2_powersave').textContent=t.powersave;
+  document.getElementById('p2_audio').textContent=t.audio;
+  document.getElementById('p2_ghost').textContent=t.ghost;
+  document.getElementById('p3_load').textContent=t.load_json;
+  document.getElementById('quickHelp').textContent=(lang==='en'?'Quick guide':'Hướng dẫn nhanh');
+  document.getElementById('cp').textContent=t.copyright;
+  document.getElementById('voiceLbl').textContent=t.voice;
+  document.getElementById('im1').textContent=t.impact_h;
+  document.getElementById('im2').innerHTML=t.impact_list.map(x=>`<li>${x}</li>`).join('');
+  document.getElementById('c1').textContent=t.contact_h;
+  document.getElementById('c2').textContent=t.email;
+  document.getElementById('c3').textContent=t.feedback;
+  document.getElementById('c3a').textContent=t.feedback_link;
+  document.getElementById('c4').textContent=t.phone;
+}
+
+const $=id=>document.getElementById(id);
+const tabs={intro:'tab-intro',learn:'tab-learn',practice:'tab-practice',impact:'tab-impact',contact:'tab-contact'};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
+  for(const k in tabs)$(tabs[k]).hidden=(k!==b.dataset.tab);
+});
+
+function setTheme(v){
+  if(v==='light')document.documentElement.setAttribute('data-theme','light');
+  else if(v==='dark')document.documentElement.setAttribute('data-theme','dark');
+  else if(v==='hc')document.documentElement.setAttribute('data-theme','hc');
+  else{const d=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',d)}
+}
+$('theme').onchange=e=>{setTheme(e.target.value);localStorage.setItem('hs_theme',e.target.value)};
+(function(){const t=localStorage.getItem('hs_theme')||'normal';$('theme').value=t;setTheme(t)})();
+$('fontStep').oninput=e=>{document.documentElement.style.setProperty('--fs',e.target.value+'px');$('fontVal').textContent=e.target.value+'px';localStorage.setItem('hs_fs',e.target.value)};
+(function(){const v=localStorage.getItem('hs_fs')||'16';$('fontStep').value=v;$('fontVal').textContent=v+'px';document.documentElement.style.setProperty('--fs',v+'px')})();
+(function(el){if(!el)return;const setP=()=>{const min=+el.min||0,max=+el.max||100,val=+el.value||0;el.style.setProperty('--p',((val-min)*100/(max-min))+'%')};el.addEventListener('input',setP);setP()})($('fontStep'));
+
+function getConsent(){return localStorage.getItem('hs_consent')==='yes'}
+function setConsent(v){localStorage.setItem('hs_consent',v?'yes':'no');updateStreakUI();hideCookieBox()}
+function showCookieBox(){ $('cookieBox').style.display='flex' }
+function hideCookieBox(){ $('cookieBox').style.display='none' }
+$('cookieYes').onclick=()=>setConsent(true);$('cookieNo').onclick=()=>setConsent(false);$('askCookie').onclick=showCookieBox;
+
+function touchPracticeDay(){if(!getConsent())return;const k='hs_days';const d=(new Date()).toISOString().slice(0,10);const S=new Set(JSON.parse(localStorage.getItem(k)||'[]'));S.add(d);localStorage.setItem(k,JSON.stringify([...S]))}
+function getStreak(){const arr=JSON.parse(localStorage.getItem('hs_days')||'[]').sort();return{n:arr.length,last:arr[arr.length-1]||null}}
+function updateStreakUI(){const s=getStreak();$('streakCount').textContent=`Streak: ${s.n}`;$('streakHint').textContent=getConsent()?(s.last?`Lần gần nhất: ${s.last}`:'Chưa luyện tập'):'Cần cho phép Cookie để lưu ngày luyện tập.'}
+if(!localStorage.getItem('hs_consent')) showCookieBox();
+updateStreakUI();
+
+function fillAlphaGrid(){const g=$('alphaGrid');g.innerHTML='';'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').forEach(ch=>{const e=document.createElement('div');e.className='cell';e.textContent=ch;e.onclick=()=>speak(ch,true);g.appendChild(e)})}
+fillAlphaGrid();
+
+let currentVolume=1.0, selectedVoice=null, allVoices=[];
+function setVol(v){currentVolume=Math.max(0,Math.min(1,parseFloat(v)||1));$('vol').value=currentVolume;$('vol').style.setProperty('--p',(currentVolume*100)+'%');$('vol-val').textContent=Math.round(currentVolume*100)+'%'}
+$('vol').addEventListener('input',e=>setVol(e.target.value));$('vol-dec').onclick=()=>setVol(currentVolume-0.1);$('vol-inc').onclick=()=>setVol(currentVolume+0.1);
+function speak(text,force){ if(!force && !$('toggle-audio').checked) return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); const lang=$('lang').value==='en'?'en-US':'vi-VN'; u.lang=lang; if(selectedVoice) u.voice=selectedVoice; u.volume=currentVolume; u.rate=1; u.pitch=1; speechSynthesis.speak(u);}catch{}}
+function refreshVoices(){ allVoices=speechSynthesis.getVoices()||[]; const lang=$('lang').value; let pool=[]; if(lang==='vi'){ pool=allVoices.filter(v=>(v.lang||'').toLowerCase().startsWith('vi')||/(viet|việt|vietnam)/i.test(v.name||'')); } else { pool=allVoices.filter(v=>(v.lang||'').toLowerCase().startsWith('en')); }
+  if(pool.length===0) pool=allVoices.slice(); pool.sort((a,b)=>(a.name||'').localeCompare(b.name||'')); const sel=$('voiceSelect'); sel.innerHTML=''; pool.forEach(v=>{const o=document.createElement('option'); o.value=v.name; o.textContent=v.name+' — '+(v.lang||''); sel.appendChild(o)}); selectedVoice=pool[0]||null; if(selectedVoice) sel.value=selectedVoice.name; }
+$('voiceSelect').onchange=e=>{selectedVoice=(allVoices||[]).find(v=>v.name===e.target.value)||null};
+$('refreshVoice').onclick=refreshVoices; speechSynthesis.onvoiceschanged=refreshVoices; window.addEventListener('DOMContentLoaded',refreshVoices);
+
+function refreshPlaceholders(){const lang=$('lang').value; $('tutorSeq').placeholder=(lang==='en'?'Enter a sequence (e.g., HELLO)':'Nhập chuỗi ký tự (ví dụ: HELLO)'); if(!$('ttsText').dataset.userEdited){$('ttsText').value=(lang==='en'?'Hello! This is a voice test.':'Xin chào! Đây là kiểm tra tiếng nói.')}}
+$('ttsText').addEventListener('input',()=>{$('ttsText').dataset.userEdited='1'});
+$('lang').addEventListener('change',()=>{applyI18N($('lang').value); refreshPlaceholders(); refreshVoices()});
+applyI18N('vi'); refreshPlaceholders();
+
+const videoEl=$('video'),canvasEl=$('canvas'),ghostEl=$('ghost'),bannerEl=$('banner'),captionEl=$('caption'),faceTag=$('faceTag');
+function banner(t){bannerEl.textContent=t}
+$('quickHelp').onclick=()=>{alert(I18N[$('lang').value].quick)};
+
+const smoothMap=new Map(); let lastTs=performance.now(); const SMOOTH_TAU_MS=90, BETA_MAX=0.65;
+function emaLandmarks(key, lm){
+  const now=performance.now(); const dt=Math.max(1, now-lastTs); lastTs=now; const beta=Math.min(BETA_MAX, 1-Math.exp(-dt/SMOOTH_TAU_MS));
+  let s=smoothMap.get(key); if(!s){ s=lm.map(p=>({x:p.x,y:p.y,z:p.z||0})); smoothMap.set(key,s); return s; }
+  for(let i=0;i<lm.length;i++){ const r=lm[i]; const t=s[i]; t.x += (r.x - t.x)*beta; t.y += (r.y - t.y)*beta; t.z += ((r.z||0)-t.z)*beta; }
+  return s;
+}
+
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function palmRef(lm){return dist(lm[0],lm[9])+1e-6}
+function fingersUp(lm,handed){const tt=lm[4],ti=lm[3],i8=lm[8],i6=lm[6],m12=lm[12],m10=lm[10],r16=lm[16],r14=lm[14],p20=lm[20],p18=lm[18];const idx=i8.y<i6.y,mid=m12.y<m10.y,ring=r16.y<r14.y,pky=p20.y<p18.y;let th;if(handed==='Right')th=tt.x<ti.x;else if(handed==='Left')th=tt.x>ti.x;else th=tt.y<lm[2].y;return [th,idx,mid,ring,pky]}
+function isOK(lm){return dist(lm[4],lm[8])/palmRef(lm)<0.45}
+function isOpenPalm(up){return up.filter(Boolean).length>=4}
+function isThumbsUp(up,lm){return up[0]&&(up.slice(1).filter(Boolean).length<=1)&&(lm[4].y<lm[0].y)}
+function isThumbsDown(up,lm){return up[0]&&(up.slice(1).filter(Boolean).length<=1)&&(lm[4].y>lm[0].y)}
+function isFist(up,lm){ if(up.filter(Boolean).length!==0)return false; const tips=[4,8,12,16,20].map(i=>dist(lm[i],lm[0])/palmRef(lm)); const avg=tips.reduce((a,b)=>a+b,0)/tips.length; return avg<0.65}
+function isPoint(up){return up[1]&&!up[0]&&!up[2]&&!up[3]&&!up[4]}
+function isVictory(up,lm){return (up[1]&&up[2]&&!up[3]&&!up[4])&&(dist(lm[8],lm[12])/palmRef(lm)>0.12)}
+
+const centroidHist=[]; const WAVE_HIST=16, WAVE_AMP_MIN=0.085, WAVE_SIGN_CHANGES_MIN=5, STOP_STABLE_AMP=0.02;
+function updateMotion(lm){const cx=lm.reduce((a,p)=>a+p.x,0)/lm.length;centroidHist.push(cx);if(centroidHist.length>WAVE_HIST)centroidHist.shift()}
+function waveAmplitude(a){if(a.length<2)return 0;return Math.max(...a)-Math.min(...a)}
+function isWaving(){if(centroidHist.length<8)return false;const d=[];for(let i=1;i<centroidHist.length;i++)d.push(centroidHist[i]-centroidHist[i-1]);for(let i=0;i<d.length;i++)if(Math.abs(d[i])<0.004)d[i]=0;let c=0;for(let i=1;i<d.length;i++)if(Math.sign(d[i])!==Math.sign(d[i-1]))c++;return waveAmplitude(centroidHist)>=WAVE_AMP_MIN&&c>=WAVE_SIGN_CHANGES_MIN}
+function isStableOpenPalm(){return waveAmplitude(centroidHist)<STOP_STABLE_AMP}
+
+const FEATURE_INDEXES=[0,5,9,13,17,1,2,3,4,8,12,16,20];
+function lmToFeature(lm){const base=lm[0];const ref=palmRef(lm);const f=[];FEATURE_INDEXES.forEach(i=>{f.push((lm[i].x-base.x)/ref,(lm[i].y-base.y)/ref,(lm[i].z-base.z)/ref)});return f}
+function cosine(a,b){let s=0,na=0,nb=0;for(let i=0;i<a.length;i++){s+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i]}return s/(Math.sqrt(na)*Math.sqrt(nb)+1e-8)}
+let ALPHA_DB=null; function predictAlphaCosine(feat){ if(!ALPHA_DB) return null; let best=null,score=-1; for(const lab in ALPHA_DB){const sims=ALPHA_DB[lab].map(v=>cosine(feat,v)).sort((a,b)=>b-a).slice(0,5);const sc=sims.reduce((a,b)=>a+b,0)/sims.length;if(sc>score){score=sc;best=lab}} return {label:best,score:score}}
+
+function feature60FromLandmarks(lm){const w=lm[0];const p=lm.map(v=>({x:v.x-w.x,y:v.y-w.y,z:(v.z||0)-(w.z||0)}));const a=Math.atan2(p[9].y,p[9].x),ca=Math.cos(-a),sa=Math.sin(-a);const r=p.map(v=>({x:v.x*ca - v.y*sa, y:v.x*sa + v.y*ca, z:v.z}));const pal=Math.hypot(r[5].x,r[5].y)+Math.hypot(r[17].x,r[17].y)+1e-6;const s=r.map(v=>({x:v.x/pal,y:v.y/pal,z:v.z/pal}));const out=new Float32Array(60);for(let i=1,j=0;i<21;i++){out[j++]=s[i].x;out[j++]=s[i].y;out[j++]=s[i].z}return out}
+function L2(a,b){let d=0;for(let i=0;i<a.length;i++){const t=a[i]-b[i];d+=t*t}return Math.sqrt(d)}
+let ALPHA60_DB=null; function knnPredict(feat,k,DB){const arr=[]; for(const lbl in DB){ for(const v of (DB[lbl]||[])) arr.push([L2(feat,v),lbl]) } if(arr.length===0) return null; arr.sort((a,b)=>a[0]-b[0]); const cut=arr.slice(0,Math.min(k,arr.length)); const vote={}; cut.forEach(([_,l])=>vote[l]=(vote[l]||0)+1); let best=null,bn=-1; for(const l in vote){if(vote[l]>bn){bn=vote[l];best=l}} return {label:best} }
+
+async function fileToText(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result||''));r.onerror=rej;r.readAsText(file)})}
+function looksLikeFeatureDataset(obj){if(!obj||typeof obj!=='object')return false;const k=Object.keys(obj)[0];if(!k)return false;const v=obj[k];if(!Array.isArray(v))return false;return Array.isArray(v[0])&&typeof v[0][0]==='number'}
+function parseMaybeWrappedHSAlpha(txt){try{if(/HS_ALPHA\s*=/.test(txt)){const rhs=txt.replace(/^[^{]*=/,'').trim().replace(/;?\s*$/,'');return JSON.parse(rhs);}return JSON.parse(txt);}catch{return null}}
+function importCode2AlphabetJSON(txt){const js=JSON.parse(txt.trim().replace(/^var\s+\w+\s*=\s*/,'').replace(/;?\s*$/,''));const db={};for(const lab in js){db[lab]=js[lab].map(frame=>{let pts=[];if(Array.isArray(frame[0])) pts=frame.map(([x,y,z])=>({x,y,z})); else{for(let i=0;i<frame.length;i+=3){pts.push({x:frame[i],y:frame[i+1],z:frame[i+2]})}} return lmToFeature(pts)});} ALPHA_DB=db;}
+function toTriplets21(frame){if(!Array.isArray(frame))return null; if(frame.length===63 && typeof frame[0]==='number'){const t=[]; for(let i=0;i<63;i+=3)t.push([frame[i],frame[i+1],frame[i+2]]); frame=t;} if(frame.length!==21)return null; const obj=frame.map(p=>Array.isArray(p)?{x:+p[0],y:+p[1],z:+p[2]}:(p&&typeof p==='object'?{x:+p.x,y:+p.y,z:+p.z}:null)); return obj.every(o=>o&&isFinite(o.x)&&isFinite(o.y)&&isFinite(o.z))?obj:null}
+function importHSAlphaObject(obj){const raw=obj?.window?.HS_ALPHA ?? obj?.HS_ALPHA ?? obj; const db39={},db60={}; for(const lbl in raw){const arr=raw[lbl]; if(!Array.isArray(arr)) continue; for(const sample of arr){const lm=toTriplets21(sample); if(!lm) continue; (db39[lbl]||(db39[lbl]=[])).push(lmToFeature(lm)); (db60[lbl]||(db60[lbl]=[])).push(feature60FromLandmarks(lm)); }} if(Object.keys(db39).length) ALPHA_DB=db39; if(Object.keys(db60).length) ALPHA60_DB=db60; }
+function importFeature60JSON(txt){const j=JSON.parse(txt); const db60={}; for(const k in j){ if(Array.isArray(j[k])) db60[k]=j[k].map(a=>Float32Array.from(a)) } ALPHA60_DB=db60; }
+$('alphaLoad').onclick=async()=>{const f=$('alphaFile').files?.[0]; if(!f){banner('Chọn tệp JSON trước');return} try{const txt=await fileToText(f); const obj=parseMaybeWrappedHSAlpha(txt); ALPHA_DB=null; ALPHA60_DB=null; let loadedKind=''; if(obj && !looksLikeFeatureDataset(obj) && (obj.HS_ALPHA || obj?.window?.HS_ALPHA || Object.keys(obj||{}).some(k=>Array.isArray(obj[k])))){importHSAlphaObject(obj); loadedKind='HS_ALPHA';} else {try{importCode2AlphabetJSON(txt); loadedKind='Alphabet JSON';} catch{importFeature60JSON(txt); loadedKind='Feature 60';}} const have39=!!ALPHA_DB && Object.keys(ALPHA_DB).length; const have60=!!ALPHA60_DB && Object.keys(ALPHA60_DB).length; if(have39||have60){$('alphaInfo').textContent=(have39&&have60)?'Đã nạp DB (39d+60d)':(have39?'Đã nạp DB (39d)':'Đã nạp DB (60d)'); banner('Đã nạp dataset: '+loadedKind);} else {$('alphaInfo').textContent='Chưa nạp DB'; banner('Tệp JSON không hợp lệ')} }catch(e){console.error(e);banner('Tệp JSON không hợp lệ')}};
+$('alphaClear').onclick=()=>{ALPHA_DB=null;ALPHA60_DB=null;$('alphaInfo').textContent='Chưa nạp DB';banner('Đã xóa DB')};
+
+const CHART_URL=document.getElementById('chartImg').src; let chartImg=new Image(); chartImg.crossOrigin='anonymous'; chartImg.src=CHART_URL;
+const CHART_COLS=6, CHART_ROWS=5;
+function drawGhostFromChart(letter){const ctx=ghostEl.getContext('2d'); const W=ghostEl.width=canvasEl.width; const H=ghostEl.height=canvasEl.height; ctx.clearRect(0,0,W,H); if(!$('ghostToggle').checked) return; const alphaIdx=letter?letter.charCodeAt(0)-65:-1; if(alphaIdx<0 || alphaIdx>25 || !chartImg.complete){ ctx.save(); ctx.globalAlpha=0.35; ctx.fillStyle='#36d399'; ctx.font=Math.min(W,H)*0.25+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(letter||'',W/2,H*0.5); ctx.restore(); return; } const cw=chartImg.naturalWidth/CHART_COLS, ch=chartImg.naturalHeight/CHART_ROWS; const col=alphaIdx%CHART_COLS; const row=Math.floor(alphaIdx/CHART_COLS); const sx=Math.max(0,Math.floor(col*cw)), sy=Math.max(0,Math.floor(row*ch)); const sw=Math.floor(cw), sh=Math.floor(ch); const pad=Math.min(W,H)*0.12; const boxW=W*0.35, boxH=H*0.35; const dx=W-pad-boxW, dy=pad; ctx.save(); ctx.globalAlpha=0.9; ctx.drawImage(chartImg,sx,sy,sw,sh,dx,dy,boxW,boxH); ctx.restore(); }
+
+$('tutorStart').onclick=()=>{const s=($('tutorSeq').value||'').toUpperCase().replace(/[^A-Z0-9]/g,''); if(!s){alert($('lang').value==='en'?'Enter letters/numbers':'Nhập chuỗi chữ/số');return} const lang=$('lang').value; let i=0; (function step(){ if(i>=s.length){const c=ghostEl.getContext('2d'); c.clearRect(0,0,ghostEl.width=canvasEl.width,ghostEl.height=canvasEl.height); return;} const ch=s[i]; const prompt=I18N[lang].tutor_prompt(ch); $('caption').textContent=prompt; speak(prompt,true); drawGhostFromChart(/[A-Z]/.test(ch)?ch:null); i++; setTimeout(step,2200) })() };
+
+function getMode(){return ($('mode')?.value)||'actions'}
+function allowAlphabetDetect(){return getMode()==='alphabet' && (ALPHA_DB||ALPHA60_DB)}
+function allowActions(){return getMode()!=='alphabet'}
+let lockUntil=0; const LOCK_SEC=1.0; function canEmit(){const now=performance.now()/1000; if(now<lockUntil) return false; lockUntil=now+LOCK_SEC; return true}
+$('mode').addEventListener('change',()=>{lockUntil=0})
+
+function onFace(r){ if(!r.multiFaceLandmarks||!r.multiFaceLandmarks.length){faceTag.textContent='🙂';return} const l=r.multiFaceLandmarks[0]; const L=l[61],R=l[291],T=l[13],B=l[14]; const w=Math.hypot(L.x-R.x,L.y-R.y), h=Math.hypot(T.x-B.x,T.y-B.y)+1e-6; const s=w/h; faceTag.textContent=(s>2.0? '😊 Vui' : '🙂') }
+
+const liveLog=$('liveLog'); function logLine(s){const p=document.createElement('div');p.textContent=s;liveLog.appendChild(p);liveLog.scrollTop=liveLog.scrollHeight}
+
+let hands=null, faceMesh=null, cam=null, stream=null;
+function onHands(results){
+  const img=results.image; const W=canvasEl.width=img.width, H=canvasEl.height=img.height; const ctx=canvasEl.getContext('2d');
+  ctx.clearRect(0,0,W,H); ctx.drawImage(img,0,0,W,H);
+  const handsLM=results.multiHandLandmarks||[]; const handness=results.multiHandedness||[];
+
+  const detHands=[];
+  for(let i=0;i<handsLM.length;i++){
+    const raw=handsLM[i]; const handed=(handness[i]&&handness[i].label)||`H${i}`; const key=`${handed}_${i}`;
+    const lm=emaLandmarks(key, raw);
+    detHands.push({lm,handed});
+    drawConnectors(ctx,lm,HAND_CONNECTIONS,{color:'#00FF88',lineWidth:3});
+    drawLandmarks(ctx,lm,{color:'#FFFFFF',lineWidth:1});
+    updateMotion(lm);
+
+    if(allowAlphabetDetect()){
+      let pred=null;
+      if(ALPHA_DB){const feat39=lmToFeature(lm); const r=predictAlphaCosine(feat39); if(r&&r.label) pred=r.label}
+      else if(ALPHA60_DB){const feat60=feature60FromLandmarks(lm); const r=knnPredict(feat60,3,ALPHA60_DB); if(r&&r.label) pred=r.label}
+      if(pred && canEmit()){ $('alphaPred').textContent=pred; speak(pred,true); touchPracticeDay(); updateStreakUI(); captionEl.textContent=pred; logLine(`[${new Date().toLocaleTimeString()}] ALPHA: ${pred}`) }
+    } else if(allowActions()){
+      const up=fingersUp(lm,handed); let label=null;
+      if(isOK(lm))label="OK"; else if(isOpenPalm(up)&&isWaving())label="WAVE"; else if(isOpenPalm(up)&&isStableOpenPalm())label="STOP"; else if(isThumbsUp(up,lm))label="THUMBS_UP"; else if(isThumbsDown(up,lm))label="THUMBS_DOWN"; else if(isOpenPalm(up))label="OPEN_PALM"; else if(isVictory(up,lm))label="VICTORY"; else if(isFist(up,lm))label="FIST"; else if(isPoint(up))label="POINT";
+      if(label && canEmit()){
+        const phrase=I18N[$('lang').value].phrases[label]||label; speak(phrase,true); banner(phrase); touchPracticeDay(); updateStreakUI(); captionEl.textContent=phrase; logLine(`[${new Date().toLocaleTimeString()}] ${label}: ${phrase}`);
+      }
+    }
+  }
+
+  if(allowActions() && detHands.length>=2){
+    for(let a=0;a<detHands.length;a++){
+      for(let b=a+1;b<detHands.length;b++){
+        const L=detHands[a].lm, R=detHands[b].lm;
+        const ref=(palmRef(L)+palmRef(R))/2; const palmDist=dist(L[0],R[0]), idxIdx=dist(L[8],R[8]);
+        const upL=fingersUp(L,'Unknown'), upR=fingersUp(R,'Unknown');
+        if(upL.filter(Boolean).length>=4 && upR.filter(Boolean).length>=4 && palmDist>0.20*ref && idxIdx>0.16*ref){
+          if(canEmit()){ const phrase=I18N[$('lang').value].phrases.THANKS; speak(phrase,true); banner(phrase); touchPracticeDay(); updateStreakUI(); captionEl.textContent=phrase; logLine(`[${new Date().toLocaleTimeString()}] THANKS: ${phrase}`);} 
+          a=b=detHands.length;
+        }
+      }
+    }
+  }
+}
+
+async function startCamera(){
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){banner('Trình duyệt không hỗ trợ');return}
+    if(!isSecureContext){banner('Hãy dùng HTTPS/localhost');return}
+    banner('Đang xin quyền camera…');
+    const ps=$('powerSave').checked; const W=ps?640:848, H=ps?360:480, mComplex=ps?0:0, minDet=ps?0.65:0.7, minTrk=ps?0.55:0.6, faceThrottle=ps?4:3;
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:W},height:{ideal:H},facingMode:'user'},audio:false});
+    videoEl.srcObject=stream;
+
+    hands=new Hands({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+    hands.setOptions({maxNumHands:2,modelComplexity:mComplex,minDetectionConfidence:minDet,minTrackingConfidence:minTrk});
+    hands.onResults(onHands);
+
+    faceMesh=new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+    faceMesh.setOptions({maxNumFaces:1,refineLandmarks:false,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
+    let c=0; faceMesh.onResults(r=>{c=(c+1)%faceThrottle; if(c!==0)return; onFace(r)});
+
+    cam=new Camera(videoEl,{onFrame:async()=>{await hands.send({image:videoEl}); await faceMesh.send({image:videoEl})},width:W,height:H});
+    await cam.start();
+    banner('Sẵn sàng — giơ tay 👋'); touchPracticeDay(); updateStreakUI();
+  }catch(e){console.error(e); banner('Lỗi: '+(e?.name||'không rõ'))}
+}
+function stopCamera(){try{if(cam&&cam.stop)cam.stop(); if(stream)stream.getTracks().forEach(t=>t.stop()); videoEl.srcObject=null; banner('Đã tắt camera'); const c=ghostEl.getContext('2d'); c.clearRect(0,0,ghostEl.width=canvasEl.width,ghostEl.height=canvasEl.height);}catch{}}
+$('startCam').onclick=startCamera; $('stopCam').onclick=stopCamera; $('flipCam').onclick=()=>{document.getElementById('stage').classList.toggle('mirror')};
+
+let rec=null, recChunks=[], recMime=''; function pickMime(){const c=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']; for(const k of c){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(k))return k}return''}
+$('recStart').onclick=()=>{try{const s=canvasEl.captureStream(30); recMime=pickMime(); rec=new MediaRecorder(s,recMime?{mimeType:recMime}:undefined); rec.ondataavailable=e=>{if(e.data&&e.data.size)recChunks.push(e.data)}; rec.onstop=()=>{const blob=new Blob(recChunks,{type:recMime||'video/webm'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='handspeak_recording.webm'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),2e4); recChunks=[]}; rec.start(); banner('Đang ghi hình…')}catch(e){banner('Trình duyệt không hỗ trợ ghi hình')}};
+$('recStop').onclick=()=>{try{if(rec&&rec.state!=='inactive'){rec.stop(); banner('Đã lưu video')}}catch{}};
+</script>
+</body>
+</html>
